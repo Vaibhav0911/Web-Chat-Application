@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iChat - Realtime Node Socket.io Chat App</title> -->
+    <!-- <script defer src="js/client.js"></script> -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav>
+        <img class="logo" src="/1.png" alt="">
+        <h1>Welcome to iDiscuss Chat App</h1>
+    </nav>
+
+    <div class="container" id="chat-container">
+         <!-- <div class="message left"  id="chat-messagesL"></div>
+         <div class="message right" id="chat-messagesR"></div>  -->
+    </div>
+
+    <div class="send">
+         <form action="#" id="send-container">
+            <input type="text" name="messageInp" id="messageInput">
+            <button class="btn" type="sumbit" id="send-button">Send</button>  
+         </form>
+    </div>
+
+    <script>
+
+        const ws = new WebSocket('ws://localhost:3000');
+        const chatContainer = document.getElementById('chat-container');
+        let userName = prompt("Please enter your name:");
+        if (!userName || userName.trim() === "") {
+          // If the user didn't enter a name, generate a random one
+          userName = "User" + Math.floor(Math.random() * 1000);
+        }
+
+        ws.onmessage = function(event) {
+          // Handle incoming messages from the server
+          const message = JSON.parse(event.data);
+
+          if (message.type === 'userJoin') {
+            // Update UI to show user joined
+            // console.log('A user joined the chat');
+            const messageElement = document.createElement('div');
+            messageElement.textContent = message.username + message.message;
+            messageElement.classList.add('nft');
+            messageElement.classList.add('center');
+            chatContainer.appendChild(messageElement);
+          } 
+          else if(message.type === 'userMessage'){
+            // Update UI to show user new message
+            const messageElement = document.createElement('div');
+            messageElement.textContent = message.username + ': ' + message.message;
+            messageElement.classList.add('message');
+            messageElement.classList.add('left');
+            chatContainer.appendChild(messageElement);
+          }
+          else {
+            // Update UI to show user left
+            // console.log('A user left the chat');
+            const messageElement = document.createElement('div');
+            messageElement.textContent = message.username + message.message;
+            messageElement.classList.add('nft');
+            messageElement.classList.add('center');
+            chatContainer.appendChild(messageElement);
+          }
+          
+
+        };
+
+        ws.addEventListener('open', function (event) {
+          // Notify the server that a new user has joined
+          ws.send(JSON.stringify({ type: 'userJoin', username: userName, message: ' join the chat' }));
+        });
+    
+        document.getElementById('send-button').addEventListener('click', function() {
+          // Send a message to the server when the Send button is clicked
+          const messageInput = document.getElementById('messageInput');
+          const message = messageInput.value;
+          ws.send(JSON.stringify({ type: 'userMessage', username: userName, message: message }));  
+
+          const messageElement = document.createElement('div');
+          messageElement.textContent =  message;
+          messageElement.classList.add('message');
+          messageElement.classList.add('right');  
+          chatContainer.appendChild(messageElement);       
+
+          messageInput.value = '';
+        });
+
+        ws.on('close', function close(event) {
+          // Notify all connected clients about the user who left
+          ws.send(JSON.stringify({ type: 'userLeave', username: userName, message: ' leave the chat' }));
+        });
+
+    //    ws.addEventListener('close', function (event) {
+          // Handle the WebSocket connection closing
+          // console.log('WebSocket connection closed');
+    //      ws.send(JSON.stringify({ type: 'userLeave', username: userName, message: ' leave the chat' }));
+    //    });
+
+    //    window.onbeforeunload = function() {
+    //      ws.close();
+    //      // The return value here is ignored by most browsers, but you can use it to show a confirmation message
+    //      return "Are you sure you want to leave?";
+    //    };
+
+    </script>
+
+</body>
+</html>
+
